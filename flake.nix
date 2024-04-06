@@ -9,16 +9,21 @@
       pkgs = nixpkgs.legacyPackages.${system};
 			dependencies = {};
     in {
+      packages.devika = pkgs.callPackage ./default.nix { };
+
+      defaultPackage = self.packages.devika;
+
       devShells.default = pkgs.mkShell {
         nativeBuildInputs = [ pkgs.bashInteractive ];
-        buildInputs = with pkgs; [ 
-          bun
+        # ollama implied
+        buildInputs = with pkgs; [
+          python3
           uv
           playwright
-          python3
-				];
-  			shellHook = ''
-          git clone https://github.com/stitionai/devika.git
+          bun
+          #self.packages.devika
+        ];
+        shellHook = ''
           cd devika/
           uv venv
           source .venv/bin/activate
@@ -26,14 +31,13 @@
           playwright install --with-deps
           cd ui/
           bun install
-          bun run dev
+          bun run dev &
           cd ..
           python3 devika.py
-          $SHELL
           exit
         '';
-       };
-
-
+      };
     });
 }
+
+

@@ -1,44 +1,29 @@
-{ lib, stdenv, fetchFromGitHub, python3, uvicorn, playwright, bun, makeWrapper }:
+{ lib, stdenv, fetchFromGitHub, python3, uv, playwright, bun }:
 
 stdenv.mkDerivation rec {
   pname = "devika";
-  version = "0.1.0";
+  version = "0.0.1";
 
   src = fetchFromGitHub {
     owner = "stitionai";
     repo = "devika";
-    rev = "edd99a7fd112173436f3b8e3bcdadb1e31a961eb"; # Use a specific commit or tag for reproducibility.
-    sha256 = "sha256-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"; # Update this with the correct hash.
+    rev = "eb09e2aacd25788430d289773b81b11ac52ac86d"; 
+    sha256 = "sha256-Oowa9anYR7qvVtBBiH1kWgkc8bgJZN4j9aVvTxqHulY=";
   };
 
-  buildInputs = [ python3 uvicorn playwright bun makeWrapper ];
-
-  propagatedBuildInputs = [ python3.pkgs.uvloop python3.pkgs.pip ];
-
-  postPatch = ''
-    substituteInPlace requirements.txt --replace "uvicorn" ""
-  '';
+  buildInputs = [ python3 uv playwright bun ];
 
   postInstall = ''
-    # Set up Python virtual environment and install dependencies
-    ${python3}/bin/python3 -m venv $out/.venv
-    source $out/.venv/bin/activate
-    pip install -r requirements.txt
-
-    # Install playwright dependencies
+    cd devika/
+    uv venv
+    source .venv/bin/activate
+    uv pip install -r requirements.txt
     playwright install --with-deps
-
-    # Setup frontend
-    pushd ui/
+    cd ui/
     bun install
-    popd
-
-    makeWrapper ${python3}/bin/python3 $out/bin/devika \
-      --run "cd $out" \
-      --run "source .venv/bin/activate" \
-      --run "cd ui && bun run dev &" \
-      --run "cd .." \
-      --add-flags "devika.py"
+    bun run dev &
+    cd ..
+    python3 devika.py
   '';
 
   meta = with lib; {
