@@ -14,9 +14,23 @@
         buildInputs = with pkgs; [ 
           bun
           uv
+          playwright
+          python3
 				];
   			shellHook = ''
+          git clone https://github.com/stitionai/devika.git
+          cd devika/
+          uv venv
+          source .venv/bin/activate
+          uv pip install -r requirements.txt
+          playwright install --with-deps
+          cd ui/
+          bun install
+          bun run dev
+          cd ..
+          python3 devika.py
           $SHELL
+          exit
         '';
        };
 
